@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CalendarClock, CalendarPlus, Loader2, XCircle } from 'lucide-react'
+import { CalendarClock, CalendarPlus, CalendarX2, Loader2, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,8 +21,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useActiveTenant } from '@/features/tenants/hooks/activeTenantContext'
+import { EmptyState } from '@/components/EmptyState'
 import { useTenantMembers } from '@/features/configuracion/hooks/useMembers'
 import { useSession } from '@/features/auth/hooks/useSession'
+import { useProfile } from '@/features/auth/hooks/useProfile'
 import { useMemberships } from '@/features/tenants/hooks/useMemberships'
 import {
   useAppointments,
@@ -60,7 +62,9 @@ export function CitasPage() {
   const attendanceMutation = useMarkAttendance(activeTenantId ?? '')
 
   const activeMembership = membershipsQuery.data?.find((m) => m.tenant_id === activeTenantId)
-  const isAdmin = activeMembership?.role?.code === 'tenant_admin'
+  const profileQuery = useProfile(session?.user.id)
+  const isPlatformAdmin = profileQuery.data?.is_platform_admin === true
+  const isAdmin = isPlatformAdmin || activeMembership?.role?.code === 'tenant_admin'
   const lockedProfessionalId = !isAdmin ? session?.user.id ?? '' : ''
 
   const [mode, setMode] = useState<ViewMode>('today')
@@ -82,10 +86,15 @@ export function CitasPage() {
     [membersQuery.data],
   )
 
-  const professionalName = (userId: string) =>
-    professionals.find((p) => p.user_id === userId)?.user_profile?.full_name ||
-    professionals.find((p) => p.user_id === userId)?.user_profile?.email ||
-    'Profesional'
+  const professionalName = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const p of professionals) {
+      map.set(p.user_id, p.user_profile?.full_name || p.user_profile?.email || 'Profesional')
+    }
+    return map
+  }, [professionals])
+
+  const professionalNameOf = (userId: string) => professionalName.get(userId) ?? 'Profesional'
 
   const filteredAppointments = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -259,7 +268,11 @@ export function CitasPage() {
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : appointments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay citas que coincidan con el filtro.</p>
+            <EmptyState
+              icon={CalendarX2}
+              title="No hay citas que coincidan con el filtro"
+              hint="Ajusta el filtro o agenda una nueva cita."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -295,25 +308,23 @@ export function CitasPage() {
                           {a.service?.name ?? '—'}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {professionalName(a.professional_id)}
+                          {professionalNameOf(a.professional_id)}
                         </TableCell>
                         <TableCell>
                           <Badge variant={meta.variant}>{meta.label}</Badge>
                         </TableCell>
                         <TableCell>
-                          {a.attendance ? (
-                            <span className="text-sm text-muted-foreground">
-                              {attendanceMeta[a.attendance] ?? a.attendance}
-                            </span>
-                          ) : isBooked(a) ? (
+                          {isAdmin || (isBooked(a) && !a.attendance && dayKey(a.scheduled_at) <= todayKey()) ? (
                             <Select
-                              value=""
+                              value={a.attendance ?? ''}
                               onValueChange={(v) =>
-                                markAttendance(a, v as 'PRESENT' | 'LATE' | 'ABSENT')
+                                v && markAttendance(a, v as 'PRESENT' | 'LATE' | 'ABSENT')
                               }
                             >
                               <SelectTrigger className="w-36">
-                                <SelectValue placeholder="Marcar…" />
+                                <SelectValue
+                                  placeholder={a.attendance ? attendanceMeta[a.attendance] : 'Marcar…'}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="PRESENT">Asistió</SelectItem>
@@ -321,6 +332,14 @@ export function CitasPage() {
                                 <SelectItem value="ABSENT">No asistió</SelectItem>
                               </SelectContent>
                             </Select>
+                          ) : a.attendance ? (
+                            <span className="text-sm text-muted-foreground">
+                              {attendanceMeta[a.attendance] ?? a.attendance}
+                            </span>
+                          ) : isBooked(a) ? (
+                            <span className="text-sm text-muted-foreground">
+                              Se habilita el día de la cita
+                            </span>
                           ) : (
                             <span className="text-sm text-muted-foreground">—</span>
                           )}

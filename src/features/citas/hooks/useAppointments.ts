@@ -27,23 +27,29 @@ export function useAppointments(tenantId: string | null) {
     queryKey: ['appointments', tenantId],
     enabled: Boolean(tenantId),
     queryFn: async () => {
-      const all: AppointmentRow[] = []
       const pageSize = 500
-      let from = 0
-      for (;;) {
-        const { data, error } = await supabase
-          .from('appointment')
-          .select(APPOINTMENT_SELECT)
-          .eq('tenant_id', tenantId!)
-          .order('scheduled_at', { ascending: false })
-          .range(from, from + pageSize - 1)
+      const { count } = await supabase
+        .from('appointment')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId!)
+      const total = count ?? 0
+      if (total === 0) return []
+      const pageCount = Math.ceil(total / pageSize)
+
+      const responses = await Promise.all(
+        Array.from({ length: pageCount }, (_, i) =>
+          supabase
+            .from('appointment')
+            .select(APPOINTMENT_SELECT)
+            .eq('tenant_id', tenantId!)
+            .order('scheduled_at', { ascending: false })
+            .range(i * pageSize, i * pageSize + pageSize - 1),
+        ),
+      )
+      for (const { error } of responses) {
         if (error) throw error
-        const rows = (data ?? []) as unknown as AppointmentRow[]
-        all.push(...rows)
-        if (rows.length < pageSize) break
-        from += pageSize
       }
-      return all
+      return responses.flatMap((r) => (r.data ?? []) as unknown as AppointmentRow[])
     },
   })
 }

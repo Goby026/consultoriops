@@ -19,12 +19,14 @@ export function SoapNoteDialog({
   tenantId,
   sessionId,
   patientId,
+  addendumOf,
   open,
   onOpenChange,
 }: {
   tenantId: string
   sessionId: string
   patientId: string
+  addendumOf?: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -45,10 +47,15 @@ export function SoapNoteDialog({
     e.preventDefault()
     if (!ready) return
     saveMutation.mutate(
-      { sessionId, patientId, values: { subjective, objective, analysis, plan } },
+      {
+        sessionId,
+        patientId,
+        addendumOf,
+        values: { subjective, objective, analysis, plan },
+      },
       {
         onSuccess: () => {
-          toast.success('Nota SOAP añadida')
+          toast.success(addendumOf ? 'Adenda añadida' : 'Nota SOAP añadida')
           setSubjective('')
           setObjective('')
           setAnalysis('')
@@ -64,9 +71,11 @@ export function SoapNoteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Nota de evolución SOAP (RF21)</DialogTitle>
+          <DialogTitle>{addendumOf ? 'Adenda a nota firmada' : 'Nota de evolución SOAP (RF21)'}</DialogTitle>
           <DialogDescription>
-            Añade una nota de evolución a la sesión (Subjetivo, Objetivo, Análisis, Plan).
+            {addendumOf
+              ? 'La adenda se agrega a la nota original sin modificar el registro firmado (RF26).'
+              : 'Añade una nota de evolución a la sesión (Subjetivo, Objetivo, Análisis, Plan).'}
           </DialogDescription>
         </DialogHeader>
 

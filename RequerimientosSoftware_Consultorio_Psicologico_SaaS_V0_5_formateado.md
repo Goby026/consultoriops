@@ -41,6 +41,110 @@ El sistema permitirá:
 - Marketplace o directorio público de psicólogos.
 - Facturación de suscripciones SaaS mediante un proveedor externo, salvo que se incorpore explícitamente en una versión posterior.
 
+## 1.4 Estado de implementación (2026-08-26)
+
+Leyenda: ✅ implementado y verificado · 🟡 parcial · ⏳ pendiente.
+
+### RF-SaaS (Gestión SaaS y Multi-Tenant)
+
+| RF | Estado | Nota |
+| --- | --- | --- |
+| RF-SaaS01 | ✅ | Alta y administración de múltiples consultorios (consola `/plataforma` + `onboard_tenant`) |
+| RF-SaaS02 | ✅ | `tenant_id` único por consultorio |
+| RF-SaaS03 | ✅ | Todo registro de negocio con `tenant_id` |
+| RF-SaaS04 | ✅ | Aislamiento por RLS (RN00) |
+| RF-SaaS05 | ✅ | `tenant_membership` con rol y estado por consultorio |
+| RF-SaaS06 | ✅ | Selección de consultorio activo (`/select-tenant`, `TenantSwitcher`) |
+| RF-SaaS07 | ✅ | Tenant derivado/validado de la membresía autenticada |
+| RF-SaaS08 | 🟡 | Activar/bloquear/dar de baja en consola; suspensión operativa pendiente (RN00e) |
+| RF-SaaS09 | ⏳ | Bloqueo de operaciones en consultorio suspendido (RN00e) |
+| RF-SaaS10 | 🟡 | `audit_log` + triggers en tablas de configuración; cobertura total pendiente |
+| RF-SaaS11 | ✅ | Configuración global separada de la del consultorio |
+| RF-SaaS12 | 🟡 | Base estructural; feature flags por plan pendientes (RF-CON14) |
+
+### RF-CON (Configuración del Consultorio)
+
+| RF | Estado | Nota |
+| --- | --- | --- |
+| RF-CON01 | ✅ | Datos institucionales (`InstitucionalTab`) |
+| RF-CON02 | ✅ | Profesionales + servicios/horarios/reglas (`ProfesionalesTab`) |
+| RF-CON03 | ✅ | Días laborables y horarios generales (`HorariosTab`) |
+| RF-CON04 | ✅ | Bloques por profesional + `schedule_exception` (descansos/feriados/excepciones) |
+| RF-CON05 | ✅ | CRUD de servicios (`ServiciosTab`) |
+| RF-CON06 | ✅ | Duración, precio, modalidad, profesionales, descripción |
+| RF-CON07 | ✅ | Precio por servicio independiente |
+| RF-CON08 | ⏳ | Precios diferenciados (profesional/modalidad/duración/condición) |
+| RF-CON09 | ⏳ | Promociones (vigencia, descuento, límites de uso) |
+| RF-CON10 | ✅ | Snapshot de precio en cita/pago (RN00d) |
+| RF-CON11 | ✅ | Métodos de pago y condiciones (`payment_config`) |
+| RF-CON12 | ✅ | Planes de pago del consultorio (`payment_plan`) |
+| RF-CON13 | 🟡 | Plantilla de consentimiento por consultorio; falta versionado |
+| RF-CON14 | ⏳ | Feature flags por consultorio/plan |
+| RF-CON15 | ✅ | Auditoría de cambios de configuración (`log_audit` + triggers) |
+
+### RF01–RF31 (Funcional)
+
+| RF | Estado | Nota |
+| --- | --- | --- |
+| RF01 | ✅ | Login email/password (Supabase Auth) |
+| RF02 | ✅ | Sesiones JWT nativas |
+| RF03 | ✅ | Roles vía `role` + `tenant_membership` |
+| RF03b | ✅ | RLS en datos clínicos |
+| RF03c | ✅ | Políticas con usuario + membresía + rol |
+| RF03d | ✅ | Tenant derivado de la membresía, no del frontend |
+| RF04 | ✅ | Registro de paciente con `is_minor` + `legal_guardian` |
+| RF05 | ✅ | Actualizar paciente |
+| RF06 | ✅ | Consultar paciente |
+| RF07 | ✅ | Historial completo solo profesional asignado y administrador |
+| RF07b | ✅ | Historial resumido en portal (RN07/RF30) |
+| RF08 | ✅ | Aceptación de consentimiento con fecha, versión y evidencia de firma |
+| RF09 | ✅ | Bloqueo de primera sesión sin consentimiento vigente (RN09) |
+| RF10 | ✅ | Documento firmado en Supabase Storage |
+| RF11 | ✅ | Crear servicios |
+| RF12 | ✅ | Máximo de citas por día por profesional |
+| RF13 | ✅ | Planes de pago |
+| RF14 | ✅ | Crear cita |
+| RF15 | ✅ | Reprogramar cita (RN08) |
+| RF16 | ✅ | Cancelar cita |
+| RF17 | ✅ | Disponibilidad por profesional y fecha |
+| RF18 | ✅ | Marcar asistencia |
+| RF19 | ✅ | Sesión clínica solo sobre cita ATENDIDA (RN04) |
+| RF20 | ✅ | Anamnesis estructurada |
+| RF21 | ✅ | Nota SOAP |
+| RF22 | ✅ | Diagnóstico CIE-11 |
+| RF23 | ✅ | Plan de tratamiento |
+| RF24 | ✅ | Escalas (PHQ-9, GAD-7) + evolución temporal |
+| RF25 | ✅ | Firma digital + inmutabilidad (RN10) |
+| RF26 | ✅ | Adenda a nota firmada |
+| RF27 | ✅ | Alerta de riesgo visible solo admin y profesional (RN12) |
+| RF28 | ✅ | Registro/vínculo del paciente (código de ficha o general) |
+| RF29 | ✅ | Solicitud de cita desde el portal |
+| RF30 | ✅ | Historial resumido (sin SOAP/anamnesis/alertas) |
+| RF31 | ✅ | Ver y firmar consentimiento pendiente |
+
+### Reglas de negocio
+
+| RN | Estado | Nota |
+| --- | --- | --- |
+| RN00 | ✅ | Aislamiento por consultorio |
+| RN00b | ✅ | Configuración independiente |
+| RN00c | ✅ | Membresía con rol por consultorio |
+| RN00d | ✅ | No modificación retroactiva (snapshot de precios) |
+| RN00e | ⏳ | Bloqueo de operaciones en consultorio suspendido |
+| RN01 | ✅ | El paciente existe antes de agendar |
+| RN02 | ✅ | Máximo de citas por día |
+| RN03 | ✅ | Estados de cita |
+| RN04 | ✅ | Solo ATENDIDA genera sesión |
+| RN05 | ✅ | Sesión única por cita |
+| RN06 | ✅ | Solo el profesional registra/firma clínica |
+| RN07 | ✅ | Paciente ve solo su información resumida |
+| RN08 | ✅ | No reprogramar cita cancelada |
+| RN09 | ✅ | Primera sesión exige consentimiento |
+| RN10 | ✅ | Nota firmada inmutable + adenda |
+| RN11 | ✅ | Menor de edad opera vía representante legal |
+| RN12 | ✅ | Alertas de riesgo ocultas a Recepcionista/Paciente |
+| RN13 | 🟡 | Bitácora de escrituras existe; registrar lecturas clínicas pendiente |
+
 ------------------------------------------------------------------------
 
 # 2. Actores del Sistema

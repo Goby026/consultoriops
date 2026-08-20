@@ -20,6 +20,7 @@ export type TenantMember = {
   status: string
   valid_from: string | null
   valid_to: string | null
+  max_appointments_per_day: number
   user_profile: { id: string; full_name: string; email: string | null } | null
   role: { id: number; code: string; name: string } | null
 }
@@ -31,7 +32,7 @@ export function useTenantMembers(tenantId: string | null) {
     queryFn: async () => {
       const { data: memberships, error: mError } = await supabase
         .from('tenant_membership')
-        .select('id, user_id, role_id, status, valid_from, valid_to, role(id, code, name)')
+        .select('id, user_id, role_id, status, valid_from, valid_to, max_appointments_per_day, role(id, code, name)')
         .eq('tenant_id', tenantId!)
       if (mError) throw mError
 

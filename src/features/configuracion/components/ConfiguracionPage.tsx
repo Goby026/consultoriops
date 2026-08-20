@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useSession } from '@/features/auth/hooks/useSession'
+import { useProfile } from '@/features/auth/hooks/useProfile'
 import { useMemberships } from '@/features/tenants/hooks/useMemberships'
 import { useActiveTenant } from '@/features/tenants/hooks/activeTenantContext'
 import { InstitucionalTab } from './InstitucionalTab'
 import { ProfesionalesTab } from './ProfesionalesTab'
 import { ServiciosTab } from './ServiciosTab'
+import { PagosPlanesTab } from './PagosPlanesTab'
 import { HorariosTab } from './HorariosTab'
 import { MiPerfilTab } from './MiPerfilTab'
 import { MisHorariosTab } from './MisHorariosTab'
@@ -14,6 +16,7 @@ const ADMIN_TABS = [
   { id: 'institucional', label: 'Datos institucionales' },
   { id: 'profesionales', label: 'Profesionales' },
   { id: 'servicios', label: 'Servicios' },
+  { id: 'pagos-planes', label: 'Pagos y planes' },
   { id: 'horarios', label: 'Horarios' },
 ] as const
 
@@ -36,9 +39,11 @@ export function ConfiguracionPage() {
   const [tab, setTab] = useState<TabId>('')
 
   const membershipsQuery = useMemberships(session?.user.id)
+  const profileQuery = useProfile(session?.user.id)
+  const isPlatformAdmin = profileQuery.data?.is_platform_admin === true
   const activeMembership = membershipsQuery.data?.find((m) => m.tenant_id === activeTenantId)
   const roleCode = activeMembership?.role?.code ?? ''
-  const isAdmin = roleCode === 'tenant_admin'
+  const isAdmin = isPlatformAdmin || roleCode === 'tenant_admin'
   const isProfessional = roleCode === 'professional'
 
   const tabs = isAdmin ? ADMIN_TABS : isProfessional ? STAFF_TABS : READONLY_TABS
@@ -79,6 +84,7 @@ export function ConfiguracionPage() {
       {activeTab === 'institucional' && <InstitucionalTab key={activeTenantId} tenantId={activeTenantId} />}
       {activeTab === 'profesionales' && <ProfesionalesTab key={activeTenantId} tenantId={activeTenantId} />}
       {activeTab === 'servicios' && <ServiciosTab key={activeTenantId} tenantId={activeTenantId} />}
+      {activeTab === 'pagos-planes' && <PagosPlanesTab key={activeTenantId} tenantId={activeTenantId} />}
       {activeTab === 'horarios' && <HorariosTab key={activeTenantId} tenantId={activeTenantId} />}
       {activeTab === 'mi-perfil' && (
         <MiPerfilTab key={activeTenantId} userId={session?.user.id ?? ''} tenantId={activeTenantId} />

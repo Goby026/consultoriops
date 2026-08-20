@@ -52,6 +52,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
+  // El administrador forzó el cambio de contraseña: bloquear el acceso hasta
+  // que el usuario defina una nueva (excepto en la propia pantalla de cambio).
+  if (profileQuery.data?.must_change_password === true && location.pathname !== '/cambiar-contrasena') {
+    return <Navigate to="/cambiar-contrasena" replace />
+  }
+
   const memberships = (membershipsQuery.data ?? []).filter((m) => m.tenant?.status === 'active')
   const pathname = location.pathname
 
@@ -61,11 +67,18 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       // Evita auto-redirección infinita cuando ya estamos en /plataforma.
       return pathname !== '/plataforma' ? <Navigate to="/plataforma" replace /> : <>{children}</>
     }
-    return <Navigate to="/no-access" replace />
+    // Usuario sin consultorios: un paciente pendiente de vincularse canjea su código.
+    return pathname !== '/portal/registro' ? <Navigate to="/portal/registro" replace /> : <>{children}</>
   }
 
   if (memberships.length > 1 && !activeTenantId) {
     return pathname !== '/select-tenant' ? <Navigate to="/select-tenant" replace /> : <>{children}</>
+  }
+
+  // Un paciente autenticado usa el portal, no la app de gestión.
+  const activeMembership = memberships.find((m) => m.tenant_id === activeTenantId) ?? memberships[0]
+  if (activeMembership?.role?.code === 'patient') {
+    return <Navigate to="/portal" replace />
   }
 
   return <>{children}</>

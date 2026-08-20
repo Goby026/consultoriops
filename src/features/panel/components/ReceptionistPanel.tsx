@@ -1,7 +1,9 @@
 import { Building2, CalendarDays, UserCheck } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
+import { initials } from '@/lib/utils'
 import { useDashboardStats } from '@/features/panel/hooks/useDashboardStats'
 
 function formatDateTime(value: string) {
@@ -52,14 +54,21 @@ export function ReceptionistPanel({ tenantId }: { tenantId: string }) {
             <p className="text-sm text-muted-foreground">Sin citas programadas.</p>
           ) : (
             stats.upcoming.slice(0, 12).map((a) => (
-              <div key={a.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {a.patient?.first_name} {a.patient?.last_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {a.service?.name ?? 'Servicio'} · {formatDateTime(a.scheduled_at)}
-                  </p>
+              <div key={a.id} className="flex items-center justify-between gap-3 rounded-lg p-2 transition-colors hover:bg-muted/60">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar className="size-9 shrink-0">
+                    <AvatarFallback>
+                      {initials(`${a.patient?.first_name} ${a.patient?.last_name}`)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {a.patient?.first_name} {a.patient?.last_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {a.service?.name ?? 'Servicio'} · {formatDateTime(a.scheduled_at)}
+                    </p>
+                  </div>
                 </div>
                 <Badge variant="outline">Programada</Badge>
               </div>

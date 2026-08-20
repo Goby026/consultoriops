@@ -230,6 +230,9 @@ export function ProfesionalesTab({ tenantId }: { tenantId: string }) {
   const rolesQuery = useRoles()
 
   const assignableRoles = (rolesQuery.data ?? []).filter((r) => !r.platform_scope)
+  const staffRoles = assignableRoles.filter((r) =>
+    ['tenant_admin', 'professional', 'receptionist'].includes(r.code),
+  )
 
   const changeRole = useMutation({
     mutationFn: async ({ membershipId, roleId }: { membershipId: string; roleId: number }) => {
@@ -306,7 +309,7 @@ export function ProfesionalesTab({ tenantId }: { tenantId: string }) {
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <AddMemberForm tenantId={tenantId} roles={assignableRoles} />
+            <AddMemberForm tenantId={tenantId} roles={staffRoles} />
           )}
         </CardContent>
       </Card>
@@ -324,7 +327,7 @@ export function ProfesionalesTab({ tenantId }: { tenantId: string }) {
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <RegisterMemberForm tenantId={tenantId} roles={assignableRoles} />
+            <RegisterMemberForm tenantId={tenantId} roles={staffRoles} />
           )}
         </CardContent>
       </Card>
@@ -367,13 +370,13 @@ export function ProfesionalesTab({ tenantId }: { tenantId: string }) {
                         <SelectTrigger className="h-8 w-52">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          {assignableRoles.map((r) => (
-                            <SelectItem key={r.id} value={String(r.id)}>
-                              {r.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
+          <SelectContent>
+            {staffRoles.map((r) => (
+              <SelectItem key={r.id} value={String(r.id)}>
+                {r.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell>

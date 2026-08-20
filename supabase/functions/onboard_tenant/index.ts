@@ -117,6 +117,18 @@ Deno.serve(async (req) => {
     return json({ error: membershipError.message }, 400)
   }
 
+  // El admin de plataforma que crea también queda como tenant_admin para poder
+  // gestionar el nuevo consultorio desde su menú lateral.
+  const { error: callerMembershipError } = await serviceClient
+    .from('tenant_membership')
+    .upsert(
+      { tenant_id: tenant.id, user_id: user.id, role_id: role.id, status: 'active' },
+      { onConflict: 'tenant_id,user_id' },
+    )
+  if (callerMembershipError) {
+    return json({ error: callerMembershipError.message }, 400)
+  }
+
   const { error: templateError } = await serviceClient.from('document_template').insert({
     tenant_id: tenant.id,
     code: 'informed_consent',

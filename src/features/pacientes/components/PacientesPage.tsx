@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { FileSignature, Loader2, Pencil, Plus, Search, UserMinus, UserPlus } from 'lucide-react'
+import { FileSignature, FolderOpen, Loader2, Pencil, Plus, Search, UserMinus, UserPlus, Users } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useActiveTenant } from '@/features/tenants/hooks/activeTenantContext'
+import { EmptyState } from '@/components/EmptyState'
 import { PacienteFormDialog } from './PacienteFormDialog'
 import { ConsentDialog } from './ConsentDialog'
 import {
@@ -34,6 +36,7 @@ function ageFromBirthDate(birthDate: string) {
 
 export function PacientesPage() {
   const { activeTenantId } = useActiveTenant()
+  const navigate = useNavigate()
   const patientsQuery = usePatients(activeTenantId)
   const consentsQuery = useConsentsByTenant(activeTenantId)
   const setStatusMutation = useSetPatientStatus(activeTenantId ?? '')
@@ -125,7 +128,11 @@ export function PacientesPage() {
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           ) : patients.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay pacientes registrados.</p>
+            <EmptyState
+              icon={Users}
+              title="No hay pacientes registrados"
+              hint="Registra el primer paciente para comenzar su historia clínica."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -177,6 +184,14 @@ export function PacientesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Ver historial clínico"
+                            onClick={() => navigate(`/app/pacientes/${p.id}`)}
+                          >
+                            <FolderOpen className="size-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

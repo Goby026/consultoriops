@@ -50,7 +50,13 @@ export function useSessions(tenantId: string | null) {
         .order('started_at', { ascending: false })
         .limit(500)
       if (error) throw error
-      return (data ?? []) as unknown as SessionRow[]
+      // PostgREST devuelve el embed 1:1 de anamnesis como objeto (unique session_id);
+      // se normaliza a array para que selected?.anamnesis?.[0] funcione.
+      const rows = (data ?? []) as unknown as Array<SessionRow & { anamnesis?: Anamnesis | Anamnesis[] | null }>
+      return rows.map((s) => ({
+        ...s,
+        anamnesis: Array.isArray(s.anamnesis) ? s.anamnesis : s.anamnesis ? [s.anamnesis] : [],
+      })) as unknown as SessionRow[]
     },
   })
 }
@@ -101,8 +107,8 @@ export function useSaveAnamnesis(tenantId: string) {
       sessionId: string
       patientId: string
       values: AnamnesisInput
-    }) => {
-      const { error } = await supabase
+    }): Promise<Anamnesis> => {
+      const { data, error } = await supabase
         .from('anamnesis')
         .upsert(
           {
@@ -117,9 +123,15 @@ export function useSaveAnamnesis(tenantId: string) {
           },
           { onConflict: 'session_id' },
         )
+        .select()
+        .single()
       if (error) throw error
+      return data as Anamnesis
     },
-    onSuccess: () => {
+    onSuccess: (saved, variables) => {
+      queryClient.setQueryData<SessionRow[]>(['sessions', tenantId], (rows) =>
+        (rows ?? []).map((s) => (s.id === variables.sessionId ? { ...s, anamnesis: [saved] } : s)),
+      )
       queryClient.invalidateQueries({ queryKey: ['sessions', tenantId] })
     },
   })
@@ -133,10 +145,12 @@ export function useSaveProgressNote(tenantId: string) {
       sessionId,
       patientId,
       values,
+      addendumOf,
     }: {
       sessionId: string
       patientId: string
       values: { subjective: string; objective: string; analysis: string; plan: string }
+      addendumOf?: string | null
     }) => {
       const { error } = await supabase.from('progress_note').insert({
         tenant_id: tenantId,
@@ -146,7 +160,25 @@ export function useSaveProgressNote(tenantId: string) {
         objective: values.objective,
         analysis: values.analysis,
         plan: values.plan,
+        addendum_of: addendumOf || null,
       })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions', tenantId] })
+    },
+  })
+}
+
+export function useSignProgressNote(tenantId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, userId }: { id: string; userId: string }) => {
+      const { error } = await supabase
+        .from('progress_note')
+        .update({ signed_at: new Date().toISOString(), signed_by: userId })
+        .eq('id', id)
       if (error) throw error
     },
     onSuccess: () => {

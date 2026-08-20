@@ -7,6 +7,7 @@ import {
   Target,
   Users,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -17,13 +18,20 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/EmptyState'
 import { KpiCard } from './KpiCard'
+import { RiskAlertsCard } from './RiskAlertsCard'
 import { useDashboardStats } from '@/features/panel/hooks/useDashboardStats'
 import { useTenantMembers } from '@/features/configuracion/hooks/useMembers'
+import { useRiskAlerts, useResolveRiskAlert } from '@/features/sesiones/hooks/useRiskAlerts'
+import { useSession } from '@/features/auth/hooks/useSession'
 
 export function AdminPanel({ tenantId }: { tenantId: string }) {
   const stats = useDashboardStats(tenantId, null)
   const membersQuery = useTenantMembers(tenantId)
+  const { session } = useSession()
+  const riskAlertsQuery = useRiskAlerts(tenantId)
+  const resolveAlertMutation = useResolveRiskAlert(tenantId)
   const loading = stats.isLoading
 
   const clinical = (membersQuery.data ?? []).filter((m) =>
@@ -47,6 +55,17 @@ export function AdminPanel({ tenantId }: { tenantId: string }) {
       }
     })
     .sort((a, b) => b.sessions - a.sessions)
+
+  const resolveAlert = (id: string) => {
+    if (!session?.user.id) return
+    resolveAlertMutation.mutate(
+      { id, userId: session.user.id },
+      {
+        onSuccess: () => toast.success('Alerta resuelta'),
+        onError: (error: Error) => toast.error(error.message),
+      },
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -115,7 +134,11 @@ export function AdminPanel({ tenantId }: { tenantId: string }) {
           {loading ? (
             <p className="py-4 text-sm text-muted-foreground">Cargando…</p>
           ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sin profesionales clínicos activos.</p>
+            <EmptyState
+              icon={Users}
+              title="Sin profesionales clínicos activos"
+              hint="Invita profesionales o configura sus roles para ver métricas por persona."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -149,6 +172,12 @@ export function AdminPanel({ tenantId }: { tenantId: string }) {
           )}
         </CardContent>
       </Card>
+
+      <RiskAlertsCard
+        alerts={riskAlertsQuery.data ?? []}
+        loading={riskAlertsQuery.isLoading}
+        onResolve={resolveAlert}
+      />
     </div>
   )
 }

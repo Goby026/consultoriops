@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { FileSpreadsheet, Loader2, Plus, Trash2 } from 'lucide-react'
@@ -228,6 +228,30 @@ function ProfessionalScheduleSection({ tenantId }: { tenantId: string }) {
   const [end, setEnd] = useState('')
   const [kind, setKind] = useState('WORK')
   const [importOpen, setImportOpen] = useState(false)
+  const [maxPerDay, setMaxPerDay] = useState('2')
+
+  useEffect(() => {
+    const member = (membersQuery.data ?? []).find((m) => m.user_id === professionalId)
+    setMaxPerDay(String(member?.max_appointments_per_day ?? 2))
+  }, [professionalId, membersQuery.data])
+
+  const updateMaxPerDay = useMutation({
+    mutationFn: async (value: number) => {
+      const { error } = await supabase
+        .from('tenant_membership')
+        .update({ max_appointments_per_day: value })
+        .eq('tenant_id', tenantId)
+        .eq('user_id', professionalId)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Capacidad diaria actualizada')
+      queryClient.invalidateQueries({ queryKey: ['tenant_members', tenantId] })
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
 
   const professionals = useMemo(() => {
     const clinical = (membersQuery.data ?? []).filter((m) =>
@@ -328,6 +352,34 @@ function ProfessionalScheduleSection({ tenantId }: { tenantId: string }) {
 
         {professionalId && (
           <>
+            <div className="flex items-end gap-4 md:max-w-md">
+              <div className="space-y-2">
+                <Label htmlFor="prof-max">Máx. atenciones por día</Label>
+                <Input
+                  id="prof-max"
+                  type="number"
+                  min={0}
+                  value={maxPerDay}
+                  onChange={(e) => setMaxPerDay(e.target.value)}
+                  onBlur={() => {
+                    const member = membersQuery.data?.find((m) => m.user_id === professionalId)
+                    const current = member?.max_appointments_per_day ?? 2
+                    const n = Number(maxPerDay)
+                    if (!Number.isFinite(n) || n < 0) {
+                      setMaxPerDay(String(current))
+                      return
+                    }
+                    if (n !== current) updateMaxPerDay.mutate(n)
+                  }}
+                  className="w-40"
+                />
+                <p className="text-xs text-muted-foreground">
+                  0 = sin límite. Cada cita debe coincidir con un bloque de trabajo y el total diario
+                  no puede superar este número.
+                </p>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="grid items-end gap-4 md:grid-cols-6">
               <div className="space-y-2">
                 <Label htmlFor="prof-day">Día</Label>

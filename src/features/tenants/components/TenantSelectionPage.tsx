@@ -25,7 +25,7 @@ export function TenantSelectionPage() {
 
   const select = (tenantId: string) => {
     setActiveTenantId(tenantId)
-    navigate('/', { replace: true })
+    navigate('/app', { replace: true })
   }
 
   return (

@@ -23,12 +23,10 @@ import {
 } from '@/components/ui/table'
 import { supabase } from '@/lib/supabaseClient'
 import { dayLabel } from './dayLabels'
-import {
-  downloadScheduleTemplate,
-  parseScheduleWorkbook,
-  type ScheduleImportRow,
-} from './scheduleImport'
+import type { ScheduleImportRow } from './scheduleImport'
 import type { TenantMember } from '@/features/configuracion/hooks/useMembers'
+
+const loadScheduleImport = () => import('./scheduleImport')
 
 type ImportScheduleDialogProps = {
   tenantId: string
@@ -55,6 +53,7 @@ export function ImportScheduleDialog({
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return
+    const { parseScheduleWorkbook } = await loadScheduleImport()
     const buffer = await file.arrayBuffer()
     const result = parseScheduleWorkbook(buffer, professionals, defaultProfessionalId)
     setRows(result.rows)
@@ -119,7 +118,10 @@ export function ImportScheduleDialog({
         </DialogHeader>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="button" variant="outline" onClick={downloadScheduleTemplate}>
+          <Button type="button" variant="outline" onClick={async () => {
+            const { downloadScheduleTemplate } = await loadScheduleImport()
+            downloadScheduleTemplate()
+          }}>
             <Download className="mr-2 size-4" />
             Plantilla
           </Button>

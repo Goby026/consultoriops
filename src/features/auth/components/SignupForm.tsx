@@ -37,7 +37,7 @@ export function SignupForm() {
     }
     // Si el email requiere confirmación, Supabase muestra el estado de confirmación.
     if (data.session) {
-      navigate('/', { replace: true })
+      navigate('/app', { replace: true })
     } else {
       navigate('/check-email', { replace: true })
     }

@@ -154,6 +154,76 @@ export type Database = {
           },
         ]
       }
+      assessment_result: {
+        Row: {
+          assessed_on: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          professional_id: string
+          scale_code: string
+          session_id: string | null
+          severity: string
+          tenant_id: string
+          total_score: number
+          updated_at: string
+        }
+        Insert: {
+          assessed_on?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          professional_id: string
+          scale_code: string
+          session_id?: string | null
+          severity: string
+          tenant_id: string
+          total_score: number
+          updated_at?: string
+        }
+        Update: {
+          assessed_on?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          professional_id?: string
+          scale_code?: string
+          session_id?: string | null
+          severity?: string
+          tenant_id?: string
+          total_score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_result_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_result_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_result_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -226,6 +296,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "clinic_schedule_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnosis: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icd11_code: string
+          icd11_label: string
+          id: string
+          is_primary: boolean
+          patient_id: string
+          professional_id: string
+          session_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icd11_code: string
+          icd11_label: string
+          id?: string
+          is_primary?: boolean
+          patient_id: string
+          professional_id: string
+          session_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icd11_code?: string
+          icd11_label?: string
+          id?: string
+          is_primary?: boolean
+          patient_id?: string
+          professional_id?: string
+          session_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnosis_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnosis_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnosis_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenant"
@@ -397,6 +534,8 @@ export type Database = {
       }
       patient: {
         Row: {
+          access_code: string | null
+          access_code_expires_at: string | null
           address: string | null
           birth_date: string
           created_at: string
@@ -413,8 +552,11 @@ export type Database = {
           status: string
           tenant_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          access_code?: string | null
+          access_code_expires_at?: string | null
           address?: string | null
           birth_date: string
           created_at?: string
@@ -431,8 +573,11 @@ export type Database = {
           status?: string
           tenant_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          access_code?: string | null
+          access_code_expires_at?: string | null
           address?: string | null
           birth_date?: string
           created_at?: string
@@ -449,10 +594,166 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "patient_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment: {
+        Row: {
+          amount: number
+          appointment_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string
+          payment_method_id: string | null
+          recorded_by: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method_id?: string | null
+          recorded_by?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method_id?: string | null
+          recorded_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_method"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_method: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_method_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_plan: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          sessions_included: number
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price?: number
+          sessions_included: number
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price?: number
+          sessions_included?: number
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plan_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenant"
@@ -509,6 +810,7 @@ export type Database = {
       }
       progress_note: {
         Row: {
+          addendum_of: string | null
           analysis: string
           created_at: string
           created_by: string | null
@@ -524,6 +826,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          addendum_of?: string | null
           analysis: string
           created_at?: string
           created_by?: string | null
@@ -539,6 +842,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          addendum_of?: string | null
           analysis?: string
           created_at?: string
           created_by?: string | null
@@ -555,6 +859,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "progress_note_addendum_of_fkey"
+            columns: ["addendum_of"]
+            isOneToOne: false
+            referencedRelation: "progress_note"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "progress_note_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -570,6 +881,76 @@ export type Database = {
           },
           {
             foreignKeyName: "progress_note_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_alert: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          level: string
+          patient_id: string
+          professional_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          level: string
+          patient_id: string
+          professional_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          level?: string
+          patient_id?: string
+          professional_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_alert_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patient"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_alert_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "risk_alert_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenant"
@@ -815,6 +1196,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          patient_signup_code: string | null
           slug: string
           status: string
           updated_at: string
@@ -823,6 +1205,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          patient_signup_code?: string | null
           slug: string
           status?: string
           updated_at?: string
@@ -831,6 +1214,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          patient_signup_code?: string | null
           slug?: string
           status?: string
           updated_at?: string
@@ -864,6 +1248,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          max_appointments_per_day: number
           role_id: number
           status: string
           tenant_id: string
@@ -874,6 +1259,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          max_appointments_per_day?: number
           role_id: number
           status?: string
           tenant_id: string
@@ -884,6 +1270,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          max_appointments_per_day?: number
           role_id?: number
           status?: string
           tenant_id?: string
@@ -1028,6 +1415,7 @@ export type Database = {
           full_name: string
           id: string
           is_platform_admin: boolean
+          must_change_password: boolean
           updated_at: string
         }
         Insert: {
@@ -1036,6 +1424,7 @@ export type Database = {
           full_name?: string
           id: string
           is_platform_admin?: boolean
+          must_change_password?: boolean
           updated_at?: string
         }
         Update: {
@@ -1044,6 +1433,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_platform_admin?: boolean
+          must_change_password?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -1053,6 +1443,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_consent: { Args: never; Returns: string }
+      cancel_own_appointment: {
+        Args: { p_appointment_id: string }
+        Returns: undefined
+      }
+      generate_patient_code: { Args: { p_patient_id: string }; Returns: string }
       get_availability: {
         Args: {
           p_date: string
@@ -1063,6 +1459,15 @@ export type Database = {
         Returns: {
           slot_end: string
           slot_start: string
+        }[]
+      }
+      get_patient_history_summary: {
+        Args: never
+        Returns: {
+          professional_name: string
+          service_name: string
+          started_at: string
+          status: string
         }[]
       }
       get_pending_session_appointments: {
@@ -1086,6 +1491,18 @@ export type Database = {
       }
       is_platform_admin: { Args: never; Returns: boolean }
       is_tenant_member: { Args: { p_tenant_id: string }; Returns: boolean }
+      list_tenant_professionals: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+        }[]
+      }
+      log_clinical_history_access: {
+        Args: { p_patient_id: string; p_tenant_id: string }
+        Returns: undefined
+      }
       lookup_user_by_email: {
         Args: { p_email: string }
         Returns: {
@@ -1097,6 +1514,18 @@ export type Database = {
       next_patient_record_number: {
         Args: { p_tenant_id: string }
         Returns: string
+      }
+      redeem_by_code: {
+        Args: { p_code: string; p_identity: Json }
+        Returns: string
+      }
+      redeem_patient_code: {
+        Args: { p_code: string; p_identity: Json; p_tenant_id: string }
+        Returns: string
+      }
+      set_patient_signup_code: {
+        Args: { p_code: string; p_tenant_id: string }
+        Returns: undefined
       }
     }
     Enums: {
@@ -1251,3 +1680,9 @@ export type Session = Tables<'session'>
 export type Anamnesis = Tables<'anamnesis'>
 export type ProgressNote = Tables<'progress_note'>
 export type TreatmentPlan = Tables<'treatment_plan'>
+export type Payment = Tables<'payment'>
+export type PaymentMethod = Tables<'payment_method'>
+export type PaymentPlan = Tables<'payment_plan'>
+export type AssessmentResult = Tables<'assessment_result'>
+export type Diagnosis = Tables<'diagnosis'>
+export type RiskAlert = Tables<'risk_alert'>
